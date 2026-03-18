@@ -1,5 +1,7 @@
-const API = process.env.REACT_APP_API_URL;
-console.log("API URL:", API);
+//const API = process.env.REACT_APP_API_URL;
+const API = "https://legerly-official-2026.onrender.com";
+//console.log("API URL:", API);
+console.log("Using API:", API);
 
 // ====================== EXPENSES ======================
 export async function getExpenses() {
