@@ -20,20 +20,12 @@ export default function Dashboard({ user }) {
 
   const now = new Date();
 
-  const totalThisMonth = expenses
-    .filter(e => new Date(e.date).getMonth() === now.getMonth())
-    .reduce((sum, e) => sum + Number(e.cost), 0);
 
-  const totalThisYear = expenses
-    .filter(e => new Date(e.date).getFullYear() === now.getFullYear())
-    .reduce((sum, e) => sum + Number(e.cost), 0);
 
   const numberOfExpenses = expenses.length;
 
   const monthsPassed = now.getMonth() + 1;
-  const averagePerMonth =
-    numberOfExpenses > 0 ? (totalThisYear / monthsPassed).toFixed(2) : 0;
-
+  
   return (
     <div className="page-container">
 
