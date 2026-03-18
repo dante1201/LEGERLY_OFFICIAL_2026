@@ -1,4 +1,4 @@
-const API = process.env.REACT_APP_API_URL || "YOUR_RENDER_BACKEND_URL";
+const API = process.env.REACT_APP_API_URL;
 
 // ====================== EXPENSES ======================
 export async function getExpenses() {
