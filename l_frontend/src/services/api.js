@@ -1,4 +1,5 @@
 const API = process.env.REACT_APP_API_URL;
+console.log("API URL:", API);
 
 // ====================== EXPENSES ======================
 export async function getExpenses() {
