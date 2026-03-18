@@ -1,28 +1,12 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getExpenses } from "../services/api";
 
 export default function Home({ user }) {
-  const [expenses, setExpenses] = useState([]);
-
-  useEffect(() => {
-    if (user) loadExpenses();
-  }, [user]);
-
-  async function loadExpenses() {
-    const data = await getExpenses();
-    setExpenses(data);
-  }
-
   return (
     <div className="page-container">
-
-      {/* Title */}
       <h1 style={{ fontSize: "32px", marginBottom: "6px" }}>
         Welcome to Ledgerly
       </h1>
 
-      {/* User Greeting */}
       {user && (
         <div style={{ marginBottom: "25px" }}>
           <p style={{ color: "var(--secondary)", fontSize: "18px" }}>
@@ -34,7 +18,6 @@ export default function Home({ user }) {
         </div>
       )}
 
-      {/* Guest message */}
       {!user && (
         <div style={{ marginTop: "20px" }}>
           <p style={{ fontSize: "18px", color: "var(--secondary)" }}>
@@ -43,7 +26,6 @@ export default function Home({ user }) {
         </div>
       )}
 
-      {/* Bottom Blurb */}
       <div style={{ marginTop: "40px", maxWidth: "650px" }}>
         <p
           style={{

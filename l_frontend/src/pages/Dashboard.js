@@ -20,24 +20,19 @@ export default function Dashboard({ user }) {
 
   const now = new Date();
 
-
+  const totalThisYear = expenses
+    .filter((e) => new Date(e.date).getFullYear() === now.getFullYear())
+    .reduce((sum, e) => sum + Number(e.cost), 0);
 
   const numberOfExpenses = expenses.length;
 
-  const monthsPassed = now.getMonth() + 1;
-  
   return (
     <div className="page-container">
-
       <h1 style={{ fontSize: "30px", marginBottom: "5px" }}>Ledger Overview</h1>
       <p style={{ color: "var(--secondary)", opacity: 0.7 }}>
         Track spending trends and analyze your expenses
       </p>
 
-      {/* Summary Cards */}
-      
-
-      {/* Table */}
       <table>
         <thead>
           <tr>
@@ -58,7 +53,6 @@ export default function Dashboard({ user }) {
         </tbody>
       </table>
 
-      {/* Expense Cards */}
       <h2 style={{ marginTop: "40px" }}>Transactions</h2>
       <div style={{ marginTop: "20px" }}>
         {expenses.map((e) => (
