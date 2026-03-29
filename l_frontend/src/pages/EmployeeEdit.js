@@ -8,13 +8,12 @@ export default function EmployeeEdit() {
 
   useEffect(() => {
     loadEmployee();
-    // eslint-disable-next-line
-  }, []);
+  }, [id]);
 
   async function loadEmployee() {
     const data = await getEmployees();
     const emp = data.find((e) => e._id === id);
-    setForm(emp);
+    setForm(emp || null);
   }
 
   function change(e) {
@@ -22,7 +21,19 @@ export default function EmployeeEdit() {
   }
 
   async function submit() {
-    await updateEmployee(id, form);
+    const result = await updateEmployee(id, {
+      full_name: form.full_name,
+      email: form.email?.toLowerCase(),
+      role: form.role,
+      auth0_id: form.auth0_id || null,
+    });
+
+    if (!result || result.error) {
+      alert(result?.error || "Failed to update employee.");
+      console.error("updateEmployee failed:", result);
+      return;
+    }
+
     window.location.href = "/employees";
   }
 
@@ -37,7 +48,7 @@ export default function EmployeeEdit() {
           name="full_name"
           className="form-input"
           placeholder="Full Name"
-          value={form.full_name}
+          value={form.full_name || ""}
           onChange={change}
         />
 
@@ -45,15 +56,25 @@ export default function EmployeeEdit() {
           name="email"
           className="form-input"
           placeholder="Email"
-          value={form.email}
+          value={form.email || ""}
           onChange={change}
         />
 
-        <input
+        <select
           name="role"
           className="form-input"
-          placeholder="Role"
-          value={form.role}
+          value={form.role || "user"}
+          onChange={change}
+        >
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+
+        <input
+          name="auth0_id"
+          className="form-input"
+          placeholder="Auth0 ID"
+          value={form.auth0_id || ""}
           onChange={change}
         />
 

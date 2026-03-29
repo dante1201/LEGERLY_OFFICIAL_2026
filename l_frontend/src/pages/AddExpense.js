@@ -8,6 +8,8 @@ export default function AddExpense({ user }) {
     cost: ""
   });
 
+  const [loading, setLoading] = useState(false);
+
   function change(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
@@ -18,11 +20,26 @@ export default function AddExpense({ user }) {
       return;
     }
 
-    await createExpense({
+    if (!user?.id) {
+      alert("User ID is missing. Please log out and log back in.");
+      return;
+    }
+
+    setLoading(true);
+
+    const result = await createExpense({
       ...form,
       cost: Number(form.cost),
       user_id: user.id
     });
+
+    setLoading(false);
+
+    if (!result || result.error) {
+      alert(result?.error || "Failed to save expense.");
+      console.error("Create expense failed:", result);
+      return;
+    }
 
     window.location.href = "/dashboard";
   }
@@ -36,6 +53,7 @@ export default function AddExpense({ user }) {
           name="vendor"
           className="form-input"
           placeholder="Vendor Name"
+          value={form.vendor}
           onChange={change}
         />
 
@@ -43,6 +61,7 @@ export default function AddExpense({ user }) {
           name="item_type"
           className="form-input"
           placeholder="Item Type"
+          value={form.item_type}
           onChange={change}
         />
 
@@ -51,11 +70,17 @@ export default function AddExpense({ user }) {
           className="form-input"
           placeholder="Cost"
           type="number"
+          value={form.cost}
           onChange={change}
         />
 
-        <button className="save-btn" onClick={submit} style={{ width: "100%" }}>
-          Save Expense
+        <button
+          className="save-btn"
+          onClick={submit}
+          style={{ width: "100%" }}
+          disabled={loading}
+        >
+          {loading ? "Saving..." : "Save Expense"}
         </button>
       </div>
     </div>

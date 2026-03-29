@@ -23,7 +23,14 @@ export async function createExpense(body) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    return await res.json();
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return { error: data.error || "Unable to create expense." };
+    }
+
+    return data;
   } catch (err) {
     console.error("createExpense error:", err);
     return { error: "Unable to create expense." };
@@ -126,5 +133,36 @@ export async function updateExpenseStatus(id, status) {
   } catch (err) {
     console.error("updateExpenseStatus error:", err);
     return { error: "Unable to update expense status." };
+  }
+}
+
+export async function syncEmployee(user) {
+  try {
+    const res = await fetch(`${API}/employees/sync`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        auth0_id: user.sub,
+        email: user.email,
+        full_name: user.name,
+        role:
+          user["https://ledgerly-app/role"] ||
+          ((user["https://ledgerly-app/roles"] || []).includes("admin") ? "admin" : "user")
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("syncEmployee failed:", data);
+      return { error: data.error || "Unable to sync employee." };
+    }
+
+    return data;
+  } catch (err) {
+    console.error("syncEmployee error:", err);
+    return { error: "Unable to sync employee." };
   }
 }

@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useEffect } from "react";
+import { syncEmployee } from "./services/api";
 
 import Login from "./pages/Login";
 import Home from "./pages/Home";
@@ -16,31 +18,69 @@ import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
 
 function App() {
-  const [user, setUser] = useState(null);
+  const { user, isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
+
+  console.log("Auth0 user:", user);
+  console.log("role claim:", user?.["https://ledgerly-app/role"]);
+  console.log("roles claim:", user?.["https://ledgerly-app/roles"]);
+  console.log("email:", user?.email);
+
+  const adminEmails = [
+    "new@gmail.com",
+  ];
+
+  const auth0Role = user?.["https://ledgerly-app/role"];
+  const auth0Roles = user?.["https://ledgerly-app/roles"] || [];
+
+  const isAdminByClaim =
+    auth0Role === "admin" || auth0Roles.includes("admin");
+
+  const isAdminByEmail =
+    adminEmails.includes((user?.email || "").toLowerCase());
+
+  const appUser = isAuthenticated
+    ? {
+        id: user?.sub || user?.email || "",
+        email: user?.email || "",
+        name: user?.name || "",
+        role: isAdminByClaim || isAdminByEmail ? "admin" : "user",
+      }
+    : null;
 
   useEffect(() => {
-    const savedUser = sessionStorage.getItem("user");
+    async function doSync() {
+      if (!isAuthenticated || !user) return;
 
-    if (!savedUser) return;
-
-    try {
-      const parsed = JSON.parse(savedUser);
-      if (parsed) setUser(parsed);
-    } catch (err) {
-      sessionStorage.removeItem("user");
+      const result = await syncEmployee(user);
+      console.log("Employee sync result:", result);
     }
-  }, []);
 
-  function logout() {
-    sessionStorage.removeItem("user");
-    setUser(null);
-    window.location.href = "/login";
+    doSync();
+  }, [isAuthenticated, user]);
+
+  function handleLogout() {
+    logout({
+      logoutParams: {
+        returnTo: window.location.origin,
+      },
+    });
+  }
+
+  function ProtectedRoute({ children }) {
+    if (isLoading) return <div style={{ padding: "20px" }}>Loading...</div>;
+    if (!isAuthenticated) return <Login />;
+    return children;
   }
 
   function AdminRoute({ children }) {
-    if (!user) return <Login />;
-    if (user.role !== "admin") return <Navigate to="/dashboard" replace />;
+    if (isLoading) return <div style={{ padding: "20px" }}>Loading...</div>;
+    if (!isAuthenticated) return <Login />;
+    if (appUser?.role !== "admin") return <Navigate to="/dashboard" replace />;
     return children;
+  }
+
+  if (isLoading) {
+    return <div style={{ padding: "20px" }}>Loading...</div>;
   }
 
   return (
@@ -60,14 +100,32 @@ function App() {
           Ledgerly
         </div>
 
-        {user && (
+        {isAuthenticated && appUser && (
           <div style={{ fontSize: 13, opacity: 0.9 }}>
-            Signed in as <strong>{user.email}</strong>
+            Signed in as <strong>{appUser.email}</strong>
           </div>
+        )}
+
+        {!isAuthenticated && (
+          <button
+            onClick={() => loginWithRedirect()}
+            style={{
+              background: "white",
+              borderRadius: "999px",
+              padding: "8px 16px",
+              color: "#111827",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: 13
+            }}
+          >
+            Login
+          </button>
         )}
       </header>
 
-      {user && (
+      {isAuthenticated && appUser && (
         <nav
           style={{
             padding: "10px 20px",
@@ -83,15 +141,12 @@ function App() {
             <Link className="nav-button" to="/dashboard">Dashboard</Link>
             <Link className="nav-button" to="/add-expense">Expenses</Link>
 
-            {user.role === "admin" && (
-  <>
-    <Link className="nav-button" to="/reports">Reports</Link>
-    <Link className="nav-button" to="/analytics">Analytics</Link>
-  </>
-)}
-
-            {user.role === "admin" && (
-              <Link className="nav-button" to="/employees">Employees</Link>
+            {appUser.role === "admin" && (
+              <>
+                <Link className="nav-button" to="/reports">Reports</Link>
+                <Link className="nav-button" to="/analytics">Analytics</Link>
+                <Link className="nav-button" to="/employees">Employees</Link>
+              </>
             )}
 
             <Link className="nav-button" to="/settings">Settings</Link>
@@ -99,7 +154,7 @@ function App() {
           </div>
 
           <button
-            onClick={logout}
+            onClick={handleLogout}
             style={{
               background: "#e11d48",
               borderRadius: "999px",
@@ -117,14 +172,14 @@ function App() {
       )}
 
       <Routes>
-        <Route path="/" element={<Home user={user} />} />
+        <Route path="/" element={<Home user={appUser} />} />
         <Route path="/login" element={<Login />} />
 
         <Route
           path="/employees"
           element={
             <AdminRoute>
-              <EmployeeList user={user} />
+              <EmployeeList user={appUser} />
             </AdminRoute>
           }
         />
@@ -149,45 +204,65 @@ function App() {
 
         <Route
           path="/dashboard"
-          element={user ? <Dashboard user={user} /> : <Login />}
+          element={
+            <ProtectedRoute>
+              <Dashboard user={appUser} />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/profile"
-          element={user ? <Profile user={user} /> : <Login />}
+          element={
+            <ProtectedRoute>
+              <Profile user={appUser} />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/settings"
-          element={user ? <Settings user={user} /> : <Login />}
+          element={
+            <ProtectedRoute>
+              <Settings user={appUser} />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/help"
-          element={user ? <Help user={user} /> : <Login />}
+          element={
+            <ProtectedRoute>
+              <Help user={appUser} />
+            </ProtectedRoute>
+          }
         />
 
         <Route
-        path="/reports"
-        element={
-        <AdminRoute>
-          <Reports user={user} />
-        </AdminRoute>
-      }
-    />
+          path="/reports"
+          element={
+            <AdminRoute>
+              <Reports user={appUser} />
+            </AdminRoute>
+          }
+        />
 
         <Route
           path="/analytics"
           element={
             <AdminRoute>
-              <Analytics user={user} />
+              <Analytics user={appUser} />
             </AdminRoute>
           }
         />
 
         <Route
           path="/add-expense"
-          element={user ? <AddExpense user={user} /> : <Login />}
+          element={
+            <ProtectedRoute>
+              <AddExpense user={appUser} />
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </BrowserRouter>

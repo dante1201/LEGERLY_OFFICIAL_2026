@@ -5,8 +5,8 @@ export default function EmployeeCreate() {
   const [form, setForm] = useState({
     full_name: "",
     email: "",
-    role: "",
-    password: "",
+    role: "user",
+    auth0_id: "",
   });
 
   function change(e) {
@@ -14,15 +14,24 @@ export default function EmployeeCreate() {
   }
 
   async function submit() {
-    if (!form.full_name || !form.email || !form.role || !form.password) {
-      alert("All fields are required");
+    if (!form.full_name || !form.email || !form.role) {
+      alert("Full name, email, and role are required");
       return;
     }
 
-    await createEmployee({
-      ...form,
+    const result = await createEmployee({
+      auth0_id: form.auth0_id || null,
+      full_name: form.full_name,
+      email: form.email.toLowerCase(),
+      role: form.role,
       created_at: new Date(),
     });
+
+    if (!result || result.error) {
+      alert(result?.error || "Failed to create employee.");
+      console.error("createEmployee failed:", result);
+      return;
+    }
 
     window.location.href = "/employees";
   }
@@ -48,23 +57,27 @@ export default function EmployeeCreate() {
           onChange={change}
         />
 
-        <input
+        <select
           name="role"
           className="form-input"
-          placeholder="Role"
           value={form.role}
           onChange={change}
-        />
+        >
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
 
         <input
-          name="password"
+          name="auth0_id"
           className="form-input"
-          placeholder="Password"
-          value={form.password}
+          placeholder="Auth0 ID (optional)"
+          value={form.auth0_id}
           onChange={change}
         />
 
-        <button className="save-btn" onClick={submit}>Save Employee</button>
+        <button className="save-btn" onClick={submit}>
+          Save Employee
+        </button>
       </div>
     </div>
   );
