@@ -5,6 +5,9 @@ export default function AddExpense({ user }) {
   const [form, setForm] = useState({
     vendor: "",
     item_type: "",
+    category: "",
+    memo: "",
+    payment_method: "",
     cost: ""
   });
 
@@ -15,8 +18,14 @@ export default function AddExpense({ user }) {
   }
 
   async function submit() {
-    if (!form.vendor || !form.item_type || !form.cost) {
-      alert("All fields are required");
+    if (
+      !form.vendor ||
+      !form.item_type ||
+      !form.category ||
+      !form.payment_method ||
+      !form.cost
+    ) {
+      alert("All required fields must be completed");
       return;
     }
 
@@ -63,6 +72,46 @@ export default function AddExpense({ user }) {
           placeholder="Item Type"
           value={form.item_type}
           onChange={change}
+        />
+
+        <select
+          name="category"
+          className="form-input"
+          value={form.category}
+          onChange={change}
+        >
+          <option value="">Select Category</option>
+          <option value="Office Supplies">Office Supplies</option>
+          <option value="Food">Food</option>
+          <option value="General Expenses">General Expenses</option>
+          <option value="Software">Software</option>
+          <option value="Equipment">Equipment</option>
+          <option value="Travel">Travel</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <select
+          name="payment_method"
+          className="form-input"
+          value={form.payment_method}
+          onChange={change}
+        >
+          <option value="">Select Payment Method</option>
+          <option value="Company Card">Company Card</option>
+          <option value="Cash">Cash</option>
+          <option value="Personal Card">Personal Card</option>
+          <option value="Check">Check</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <textarea
+          name="memo"
+          className="form-input"
+          placeholder="Memo / Notes"
+          value={form.memo}
+          onChange={change}
+          rows="4"
         />
 
         <input
