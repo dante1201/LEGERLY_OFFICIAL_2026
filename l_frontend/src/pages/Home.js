@@ -34,7 +34,7 @@ export default function Home({ user }) {
             lineHeight: 1.6,
           }}
         >
-          Ledgerly helps you track your spending effortlessly — organize
+          TESTLedgerly helps you track your spending effortlessly — organize
           expenses, visualize trends, and stay in control of your finances with
           clarity and simplicity.
         </p>
